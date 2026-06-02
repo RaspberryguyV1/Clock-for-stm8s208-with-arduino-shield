@@ -1,7 +1,7 @@
 
 
 ---
-##1. Start i konfiguracja projektu
+## 1. Start i konfiguracja projektu
 
 | Komenda | Co robi? |
 | :--- | :--- |
