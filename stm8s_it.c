@@ -36,6 +36,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+extern unsigned int tick_ms;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -489,6 +490,8 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+		tick_ms++;
+		TIM4_ClearFlag(TIM4_FLAG_UPDATE);
  }
 #endif /* (STM8S903) || (STM8AF622x)*/
 
