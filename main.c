@@ -31,16 +31,16 @@
 
 /* Private defines -----------------------------------------------------------*/
 unsigned int tick_ms = 0;
-unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Styczeñ, month[1] to Luty  itp.
 unsigned int day = 0;
 unsigned int hour = 0;
 unsigned int minute = 0;
 unsigned int second = 0;
-unsigned int cyfra0 = 1;
+unsigned int cyfra0 = 0;
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
-int intigers[4] = {0,0,0,0};
+int intigers[4] = {0,0,0,0}; //Wpisujecie t¹ listê jako drugi element funkcji convertNumber.
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
