@@ -39,3 +39,12 @@
 | `git restore <nazwa_pliku>` | **Przycisk "Cofnij".** Przywraca plik do stanu z ostatniego commita, kasując wszystkie niezapisane błędy. |
 
 ---
+
+## Podział zadań:
+| Lp. | Osoba | Zadanie | Status wykonania |
+| 1. | Magda | UARTEM KONFIGURUJEMY GODZINĘ ORAZ DATĘ, PO WYSŁANIU KOMENDY ZEGAREK RUSZA | NIEWYKONANE |
+| 2. | Hubert | PRZEZ PIERWSZE 3s WYŚWIETLA H:M, DRUGIE 3s WYŚWIETLA S, trzecie 3s datę  | NIEWYKONANE |
+| 3. | Hubert | PRZYTRZYMUJĄC S1 WYŚWIETLI GODZINĘ H:M, PRZYCISKIEM S2 datę | NIEWYKONANE |
+| 4. | Magda | CO 1s BĘDZIE ZAPALAĆ DIODY: D1, D1D2, D1D2D3, D1D2D3D4, D2D3D4, D3D4, D4, D1... | NIEWYKONANE |
+| 5.| Tymoteusz | O PÓŁNOCY ZAGRA MELODYJKĘ Z POMOCĄ BUZERA | NIEWYKONANE |
+
