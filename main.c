@@ -31,7 +31,7 @@
 
 /* Private defines -----------------------------------------------------------*/
 unsigned int tick_ms = 0;
-unsigned int cyfra0 = 2;
+unsigned int cyfra0 = 1;
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
