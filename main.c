@@ -31,10 +31,16 @@
 
 /* Private defines -----------------------------------------------------------*/
 unsigned int tick_ms = 0;
+unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+unsigned int day = 0;
+unsigned int hour = 0;
+unsigned int minute = 0;
+unsigned int second = 0;
 unsigned int cyfra0 = 1;
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
+int intigers[4] = {0,0,0,0};
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -78,12 +84,30 @@ void segm_latch(char pos, char val)
 {	
   segm_shift(val);
   segm_shift(0x80 >> pos);
-	//0x80 = 0b10000000	
 	GPIO_WriteHigh(GPIOG,GPIO_PIN_0);
 	GPIO_WriteLow(GPIOG,GPIO_PIN_0);
 
 }
-//-70% - "sekundnik", co 250ms zwiêksza wyœwietlana cyfrê od 1 do 9999
+
+//Funkcja do konwersji liczb np. 113 na elementy w tablicy np. intigers = {0 , 1, 1 ,3}
+void convertNumber(int number, int numbersArray[]){
+	if(number >9999){
+		number = 9999;
+	}	
+	numbersArray[0] = (number / 1000)%10;
+	numbersArray[1] = (number / 100)%10;
+	numbersArray[2] = (number / 10)%10;
+	numbersArray[3] = number%10;
+
+}
+//Funkcja do odœwie¿ania ekranu za pomoc¹ pobranych wartoœci z tablicy intigers!!!
+void refreshSegm(){
+	segm_latch(0, segm_dec[intigers[0]]);
+	segm_latch(1, segm_dec[intigers[1]]);
+	segm_latch(2, segm_dec[intigers[2]]);
+	segm_latch(3, segm_dec[intigers[3]]);
+}
+
 void main(void)
 {
   segm_init();
@@ -94,7 +118,22 @@ void main(void)
 	enableInterrupts();
   while (1)
   {
-      
+		if(tick_ms >= 1000){
+			tick_ms = 0;
+			second++;
+			if(second >=60){
+				second = 0;
+				minute++;
+				if(minute >= 60){
+					minute = 0;
+					hour++;
+					if(hour >= 24){
+						day++;
+						hour = 0;
+					}
+				}
+			}
+		}
       segm_latch(0, segm_dec[3]);
   }
 }
