@@ -1,13 +1,7 @@
-```markdown
-# 🛠️ Ściągawka z Gita dla Zespołu
 
-Repozytorium projektu: **Clock-for-stm8s208-with-arduino-shield**
-
-Oto zbiór najważniejszych komend oraz zasady współpracy, które pozwolą nam bezstresowo pracować nad wspólnym kodem.
 
 ---
-
-## 🚀 1. Start i konfiguracja projektu
+##1. Start i konfiguracja projektu
 
 | Komenda | Co robi? |
 | :--- | :--- |
@@ -17,7 +11,7 @@ Oto zbiór najważniejszych komend oraz zasady współpracy, które pozwolą nam
 
 ---
 
-## 💻 2. Codzienny cykl pracy lokalnej
+## 2. Podstawowe komendy
 
 | Komenda | Co robi? |
 | :--- | :--- |
@@ -28,7 +22,7 @@ Oto zbiór najważniejszych komend oraz zasady współpracy, które pozwolą nam
 
 ---
 
-## ☁️ 3. Współpraca i synchronizacja z GitHubem
+## 3. Współpraca i synchronizacja z GitHubem
 
 | Komenda | Co robi? |
 | :--- | :--- |
@@ -37,7 +31,7 @@ Oto zbiór najważniejszych komend oraz zasady współpracy, które pozwolą nam
 
 ---
 
-## 🛡️ 4. Historia i ratowanie sytuacji
+## 4. Historia i ratowanie sytuacji
 
 | Komenda | Co robi? |
 | :--- | :--- |
