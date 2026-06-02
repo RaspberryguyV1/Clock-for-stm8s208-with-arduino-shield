@@ -42,6 +42,7 @@
 
 ## Podział zadań:
 | Lp. | Osoba | Zadanie | Status wykonania |
+| :--- | :--- |
 | 1. | Magda | UARTEM KONFIGURUJEMY GODZINĘ ORAZ DATĘ, PO WYSŁANIU KOMENDY ZEGAREK RUSZA | NIEWYKONANE |
 | 2. | Hubert | PRZEZ PIERWSZE 3s WYŚWIETLA H:M, DRUGIE 3s WYŚWIETLA S, trzecie 3s datę  | NIEWYKONANE |
 | 3. | Hubert | PRZYTRZYMUJĄC S1 WYŚWIETLI GODZINĘ H:M, PRZYCISKIEM S2 datę | NIEWYKONANE |
