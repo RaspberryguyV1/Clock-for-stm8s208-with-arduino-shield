@@ -24,9 +24,11 @@
   *
   ******************************************************************************
   */ 
+
 	
 	
 	//67676767676767676776
+
 
 
 /* Includes ------------------------------------------------------------------*/
@@ -34,7 +36,7 @@
 
 /* Private defines -----------------------------------------------------------*/
 unsigned int tick_ms = 0;
-unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Styczeñ, month[1] to Luty  itp.
+unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Stycze , month[1] to Luty  itp.
 unsigned int day = 0;
 unsigned int hour = 0;
 unsigned int minute = 0;
@@ -43,7 +45,7 @@ unsigned int cyfra0 = 0;
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
-int intigers[4] = {0,0,0,0}; //Wpisujecie t¹ listê jako drugi element funkcji convertNumber.
+int intigers[4] = {0,0,0,0}; //Wpisujecie t  list  jako drugi element funkcji convertNumber.
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -103,7 +105,7 @@ void convertNumber(int number, int numbersArray[]){
 	numbersArray[3] = number%10;
 
 }
-//Funkcja do odœwie¿ania ekranu za pomoc¹ pobranych wartoœci z tablicy intigers!!!
+//Funkcja do od wie ania ekranu za pomoc  pobranych warto ci z tablicy intigers!!!
 void refreshSegm(){
 	segm_latch(0, segm_dec[intigers[0]]);
 	segm_latch(1, segm_dec[intigers[1]]);
