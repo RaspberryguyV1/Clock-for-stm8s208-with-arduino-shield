@@ -42,11 +42,11 @@ unsigned int day = 0;
 unsigned int hour = 0;
 unsigned int minute = 0;
 unsigned int second = 0;
-unsigned int cyfra0 = 0;
+unsigned int cyfra0 = 0;//cyfry wyswietlane na wyswietlaczu
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
-int intigers[4] = {0,0,0,0}; //Wpisujecie t  list  jako drugi element funkcji convertNumber.
+int intigers[4] = {0,0,0,0}; //Wpisujecie ta  liste  jako drugi element funkcji convertNumber.
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -94,7 +94,8 @@ void segm_latch(char pos, char val)
 	GPIO_WriteLow(GPIOG,GPIO_PIN_0);
 
 }
-
+//Hubert
+//funkcje pomocnicze
 //Funkcja do konwersji liczb np. 113 na elementy w tablicy np. intigers = {0 , 1, 1 ,3}
 void convertNumber(int number, int numbersArray[]){
 	if(number >9999){
@@ -106,8 +107,8 @@ void convertNumber(int number, int numbersArray[]){
 	numbersArray[3] = number%10;
 
 }
-//Funkcja do od wie ania ekranu za pomoc  pobranych warto ci z tablicy intigers!!!
-void refreshSegm(){
+//Funkcja do odswiezania ekranu za pomoca  pobranych wartoci z tablicy intigers!!!
+void refreshSegm(){//odswierza ekran 
 	segm_latch(0, segm_dec[intigers[0]]);
 	segm_latch(1, segm_dec[intigers[1]]);
 	segm_latch(2, segm_dec[intigers[2]]);
@@ -122,7 +123,7 @@ void main(void)
 	TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
 	TIM4_Cmd(ENABLE);
 	enableInterrupts();
-  while (1)
+  while (1)//Hubert: liczenie dni
   {
 		if(tick_ms >= 1000){
 			tick_ms = 0;
