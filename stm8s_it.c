@@ -37,6 +37,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 extern unsigned int tick_ms;
+//Magda: funkcje do sterwoania uart z main.c
+extern void rx_put(char c);
+extern uint8_t tx_get(void);
+extern uint8_t tx_cnt(void);
+
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -331,7 +337,20 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_TX_IRQHandler, 17)
  {
-    /* In order to detect unexpected events during development,
+	 // Magda: Obs³uga wysy³ania znaków z bufora na komputer
+	 if (UART1_GetITStatus(UART1_IT_TXE) != RESET)
+    {
+        if (tx_cnt())
+        {
+            UART1_SendData8(tx_get());
+        }
+        else
+        {
+            UART1_ITConfig(UART1_IT_TXE, DISABLE);
+        }
+    }
+   
+	 /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
  }
@@ -343,6 +362,12 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_RX_IRQHandler, 18)
  {
+	 // Magda: Przekazanie odebrany znak bezpoœrednio do funkcji rx_put
+	 if (UART1_GetITStatus(UART1_IT_RXNE) != RESET)
+    {
+        rx_put(UART1_ReceiveData8());
+        UART1_ClearITPendingBit(UART1_IT_RXNE);
+    }
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
