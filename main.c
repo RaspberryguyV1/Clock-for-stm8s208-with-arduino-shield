@@ -34,8 +34,25 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
+#include <stdbool.h>
 
+//Magda: UART
+#define TX_SIZE 96
+#define RX_SIZE 14//na GGMMSSDDMMRR
 /* Private defines -----------------------------------------------------------*/
+//Magda: zmienne do sterowania UART
+//Koszyczki na dane uwu tablice 
+int8_t rx_buff[RX_SIZE];//miejsce/bufor na znaki z terminala
+uint8_t tx_buff[TX_SIZE];//bufor dla tekstu wyslanego przez mikro. do komp
+uint8_t rx_comand[RX_SIZE];//tablica pomocnicza, przechowuje komede na czas jej roszyfrowania
+uint8_t tx_wr;//WskaŸnik zapisu do bufora nadawczego (gdzie dopisaæ now¹ literê do wys³ania)
+uint8_t tx_rd;//WskaŸnik odczytu z bufora nadawczego (któr¹ literê uk³ad UART ju¿ wys³a³)
+uint8_t rx_wr;// WskaŸnik zapisu bufora odbiorczego (do ktorego bufora w³o¿yæ kolejny odebrany znak)
+volatile uint8_t CarRet = 0; // Informacja o odebraniu znaku '\r' (Enter)
+uint8_t ind;//Zmienna pomocnicza (indeks) u¿ywana w pêtlach do czyszczenia lub kopiowania tablic
+// Magda: Flaga zegara - na starcie false (zegar stoi, dopóki UART nie wyœle czasu)
+volatile bool zegar_zyje = false;
+
 unsigned int tick_ms = 0;
 unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Stycze , month[1] to Luty  itp.
 unsigned int day = 0;
@@ -114,10 +131,72 @@ void refreshSegm(){//odswierza ekran
 	segm_latch(2, segm_dec[intigers[2]]);
 	segm_latch(3, segm_dec[intigers[3]]);
 }
+//Magda: 
+//Funkcje podwalone od Profesora Jerzaka ;3
+//Funkcja od dodawania znakow do nadania
+void tx_put(uint8_t c)//Funkcja dodaje pojedynczy znak do bufora nadawczego
+{
+  tx_buff[tx_wr] = c;// Zapisz znak do bufora na pozycjê wskazywan¹ przez tx_wr
+  if (++tx_wr >= TX_SIZE) tx_wr = 0;// Zwiêksz indeks zapisu; jeœli osi¹gnie koniec bufora, wróæ na 0
+  UART1_ITConfig(UART1_IT_TXE, ENABLE); // W³¹czenie przerwañ nadajnika
+}
+//Funkcja od przeslania przez kabel
+uint8_t tx_get(void)// Funkcja pobiera kolejny znak z bufora nadawczego w celu jego wys³ania przez kabel
+{
+  uint8_t c = tx_buff[tx_rd];// Odczytaj znak z bufora z pozycji wskazywanej przez tx_rd
+  if (++tx_rd >= TX_SIZE) tx_rd = 0;
+  return c;// Zwróæ pobrany znak
+}
+//Funkcja od sprawdzania czy cos czeka na wyslanie
+uint8_t tx_cnt(void)
+{
+  if (tx_wr != tx_rd)// Zwróæ 1, jeœli indeks zapisu ró¿ni siê od odczytu (s¹ znaki w buforze)
+    return 1;
+  else
+    return 0;// Zwróæ 0, jeœli indeksy s¹ równe (bufor jest pusty)
+}
+//Funkcja od zebrania informacji od uzytkownika i do wlozenia jej w odpowiedznie miejsce do przechowania
+void rx_put(char c)// Zapisz odebrany znak do bufora na pozycjê rx_wr
+{
+  rx_buff[rx_wr] = c;// Zapisz odebrany znak do bufora na pozycjê co poda rx_wr
+  if (++rx_wr >= RX_SIZE) rx_wr = 0;// Zwiêksz indeks zapisu; w przypadku przepe³nienia wróæ na pocz¹tek
+  if (c == 13) // Kod ASCII 13 to ENTER (\r)
+  {
+    CarRet = 1;
+    UART1_ITConfig(UART1_IT_RXNE_OR, DISABLE); // Blokada odbioru na czas dekodowania
+  }
+}
+//funkcja do wysylania tekstu: mikro potrafi³ gadac do kompa
+void send_string(const char* s)//to co wpiszemy rozbija na pojedyncza literke i wsadza do tx_put
+{
+  while (*s) tx_put(*s++);
+}
+//.....................................
+//Magda: fukcja co bierze z terminala co wpisalismy i sorktu i dekoduje z ascii/ zajeba³am to od germina bo chuj wie jak to zrobic T^T
+void dekoduj_czas(void)
+{
+    // Zamieniamy znaki ASCII z bufora rx_buff na liczby
+    hour   = (rx_buff[0]  - '0') * 10 + (rx_buff[1]  - '0');
+    minute = (rx_buff[2]  - '0') * 10 + (rx_buff[3]  - '0');
+    second = (rx_buff[4]  - '0') * 10 + (rx_buff[5]  - '0');
+    day    = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
+
+    // Zegarek dosta³ czas, wiêc ZYJEEEE	
+    zegar_zyje = true;
+    
+    send_string("Zegarek POWSTAL\r\n");
+}
 
 void main(void)
 {
   segm_init();
+	//Konfig Uart z komunikatem:
+	GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_OUT_PP_HIGH_FAST); // PD5  TX (Nadajnik)
+  GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_PU_NO_IT);      // PD6 RX (Odbiornik)
+	UART1_Init((uint32_t)9600, UART1_WORDLENGTH_8D, UART1_STOPBITS_1, UART1_PARITY_NO, UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_TXRX_ENABLE);
+  UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE);
+  send_string("Zegarek nie zyje. Ustaw aktualny czas i date (GGMMSSDDMMRR) i kliknij Enter:\r\n");
+	//...........................................
 	TIM4_TimeBaseInit(TIM4_PRESCALER_16,124); //Odliczanie 1ms
 	TIM4_ClearFlag(TIM4_FLAG_UPDATE);
 	TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
@@ -125,6 +204,12 @@ void main(void)
 	enableInterrupts();
   while (1)//Hubert: liczenie dni
   {
+		if (CarRet == 1)//Po enterze ON ZYJE MUHAHAHAHAHA
+      {
+          dekoduj_czas(); // Wywo³ujemy nasze dekodowanie
+          CarRet = 0;     // Zerujemy flagê Entera
+          UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE); // Odblokowujemy UART do dalszego s³uchania
+      }
 		if(tick_ms >= 1000){
 			tick_ms = 0;
 			second++;
