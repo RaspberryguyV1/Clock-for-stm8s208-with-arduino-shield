@@ -1,32 +1,88 @@
-/*
+/**
+  ******************************************************************************
+  * @file    stm8s_it.c
+  * @author  MCD Application Team
   * @version V2.3.0
   * @date    16-June-2017
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all peripherals interrupt service 
-  *          routine.
   * This file provides template for all peripherals interrupt service 
   * routine.
    ******************************************************************************
   * @attention
   *
-
+  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  *
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
   * You may obtain a copy of the License at:
   *
-  *        http://www.st.com/software_license_agreement_liberty_v2
   * http://www.st.com/software_license_agreement_liberty_v2
   *
   * Unless required by applicable law or agreed to in writing, software 
   * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  ******************************************************************************
+  */ 
 
-*/
+/* Includes ------------------------------------------------------------------*/
+#include "stm8s_it.h"
+
+/** @addtogroup Template_Project
+  * @{
+  */
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-extern unsigned int tick_ms;
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
 extern volatile unsigned int tick_ms;
+extern volatile unsigned int clock_state;
+
 //Magda: funkcje do sterwoania uart z main.c
 extern void rx_put(char c);
 extern uint8_t tx_get(void);
+extern uint8_t tx_cnt(void);
+
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
+/* Public functions ----------------------------------------------------------*/
+
+#ifdef _COSMIC_
+/**
+  * @brief Dummy Interrupt routine
+  * @par Parameters:
+  * None
+  * @retval
+  * None
+*/
+INTERRUPT_HANDLER(NonHandledInterrupt, 25)
+{
+  /* In order to detect unexpected events during development,
+     it is recommended to set a breakpoint on the following instruction.
+  */
+}
+#endif /*_COSMIC_*/
+
+/**
+  * @brief TRAP Interrupt routine
+  * @param  None
+  * @retval None
+  */
+INTERRUPT_HANDLER_TRAP(TRAP_IRQHandler)
+{
+  /* In order to detect unexpected events during development,
+     it is recommended to set a breakpoint on the following instruction.
+  */
+}
+
+/**
+  * @brief Top Level Interrupt routine.
+  * @param  None
+  * @retval None
+  */
 INTERRUPT_HANDLER(TLI_IRQHandler, 0)
 
 {
@@ -78,9 +134,19 @@ INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
   */
 INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
 {
-  /* In order to detect unexpected events during development,
-     it is recommended to set a breakpoint on the following instruction.
-  */
+  // Obs³uga przycisków S1 (PB4) i S2 (PB3)
+  if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_4) == RESET) 
+  {
+      clock_state = 1;
+  }
+  else if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_3) == RESET) 
+  {
+      clock_state = 2;
+  }
+  else 
+  {
+      clock_state = 0; 
+  }
 }
 
 /**
@@ -282,22 +348,18 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_TX_IRQHandler, 17)
  {
-	 // Magda: Obs3uga wysy3ania znaków z bufora na komputer
-	 if (UART1_GetITStatus(UART1_IT_TXE) != RESET)
-    {
-        if (tx_cnt())
-        {
-            UART1_SendData8(tx_get());
-        }
-        else
-        {
-            UART1_ITConfig(UART1_IT_TXE, DISABLE);
-        }
-    }
-   
-	 /* In order to detect unexpected events during development,
-       it is recommended to set a breakpoint on the following instruction.
-    */
+     // Magda: Obs³uga wysy³ania znaków z bufora na komputer
+     if (UART1_GetITStatus(UART1_IT_TXE) != RESET)
+     {
+         if (tx_cnt())
+         {
+             UART1_SendData8(tx_get());
+         }
+         else
+         {
+             UART1_ITConfig(UART1_IT_TXE, DISABLE);
+         }
+     }
  }
 
 /**
@@ -307,15 +369,19 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_RX_IRQHandler, 18)
  {
-	 // Magda: Przekazanie odebrany znak bezpo?rednio do funkcji rx_put
-	 if (UART1_GetITStatus(UART1_IT_RXNE) != RESET)
-    {
-        rx_put(UART1_ReceiveData8());
-        UART1_ClearITPendingBit(UART1_IT_RXNE);
-    }
-    /* In order to detect unexpected events during development,
-       it is recommended to set a breakpoint on the following instruction.
-    */
+     // Magda: Przekazanie odebranego znaku bezpoœrednio do funkcji rx_put
+     if (UART1_GetITStatus(UART1_IT_RXNE) != RESET)
+     {
+         rx_put(UART1_ReceiveData8());
+         UART1_ClearITPendingBit(UART1_IT_RXNE);
+     }
+     
+     // Zabezpieczenie przed przepe³nieniem (Overrun Error) sprzêtowego bufora UART
+     if (UART1_GetITStatus(UART1_IT_OR) != RESET)
+     {
+         UART1_ReceiveData8(); 
+         UART1_ClearITPendingBit(UART1_IT_OR);
+     }
  }
 #endif /* (STM8S208) || (STM8S207) || (STM8S103) || (STM8S001) || (STM8S903) || (STM8AF62Ax) || (STM8AF52Ax) */
 
@@ -457,11 +523,8 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   */
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
-  /* In order to detect unexpected events during development,
-     it is recommended to set a breakpoint on the following instruction.
-  */
-		tick_ms++;
-		TIM4_ClearFlag(TIM4_FLAG_UPDATE);
+    tick_ms++;
+    TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
  }
 #endif /* (STM8S903) || (STM8AF622x)*/
 

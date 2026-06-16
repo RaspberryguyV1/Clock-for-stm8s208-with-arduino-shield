@@ -221,6 +221,10 @@ void TIM2_Config(void)
 void main(void)
 {
  segm_init();
+ 
+ //Konfig guzików
+ 	GPIO_Init(GPIOB, GPIO_PIN_4, GPIO_MODE_IN_FL_IT); //S1
+	GPIO_Init(GPIOB, GPIO_PIN_3, GPIO_MODE_IN_FL_IT); //S2
 	//Konfig Uart z komunikatem:
 	GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_OUT_PP_HIGH_FAST); // PD5 TX (Nadajnik)
   GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_PU_NO_IT);   // PD6 RX (Odbiornik)
