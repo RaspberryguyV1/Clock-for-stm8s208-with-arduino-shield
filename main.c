@@ -185,21 +185,36 @@ void send_string(const char* s)//to co wpiszemy rozbija na pojedyncza literke i 
 //Magda: fukcja co bierze z terminala co wpisalismy i sorktu i dekoduje z ascii/ zajeba am to od germina bo chuj wie jak to zrobic T^T
 void dekoduj_czas(void)
 {
-  // Wyci gamy cyfry prosto z bufora, poprawiaj c ko c wk  o przesuni cie
+  // 1. Zczytujemy liczby z bufora tekstowego (ASCII na int)
   hour          = (rx_buff[0]  - '0') * 10 + (rx_buff[1]  - '0');
   minute        = (rx_buff[3]  - '0') * 10 + (rx_buff[4]  - '0');
   second        = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
   day           = (rx_buff[9]  - '0') * 10 + (rx_buff[10] - '0');
-  // Przesuni te o 2 pozycje w prawo,  eby omin    mieci z terminala:
   current_month = (rx_buff[12] - '0') * 10 + (rx_buff[13] - '0');
-  // Rok sk adamy z pozycji 17, 18, 19, 20
-		year = (rx_buff[15] - '0') * 1000 + 
-           (rx_buff[16] - '0') * 100 + 
-           (rx_buff[17] - '0') * 10 + 
-           (rx_buff[18] - '0');
+  
+  year = (rx_buff[15] - '0') * 1000 + 
+         (rx_buff[16] - '0') * 100 + 
+         (rx_buff[17] - '0') * 10 + 
+         (rx_buff[18] - '0');
 
-  zegar_zyje = true;
-  send_string("Zegarek POWSTAL\r\n");
+  // 2. SPRAWDZANIE ZAKRESÓW (Pilnujemy poprawnoœci danych)
+  if (hour >= 24 || minute >= 60 || second >= 60 || 
+      current_month > 12 || current_month == 0 || 
+      day == 0 || day > month[current_month - 1] || year < 2000)
+  {
+    // WYKRYTO B£¥D - Czyœcimy bufor i nie pozwalamy aktywowaæ zegara
+    zegar_zyje = false; 
+    rx_wr = 0; 
+    send_string("\r\nBlad w Zapisie! Podano nieprawidlowe wartosci.\r\n");
+    send_string("Wpisz ponownie (GG:MM:SS DD.MM.RRRR):\r\n");
+  }
+  else
+  {
+    // WSZYSTKO OK - Dane s¹ poprawne, aktywujemy flagê sukcesu
+    zegar_zyje = true;
+    rx_wr = 0; 
+    send_string("\r\nZegarek POWSTAL - Dane poprawne!\r\n");
+  }
 }
 // Tymek
 // funkcja do inicjalizacji bazera
@@ -282,7 +297,7 @@ void main(void)
 		
 	}
 	refreshSegm();
-		if(tick_ms >= 1000){
+		if(tick_ms >= 1000 && zegar_zyje == true){
 			tick_ms = 0;
 			second++;
 			convertNumber(second,seconds);
