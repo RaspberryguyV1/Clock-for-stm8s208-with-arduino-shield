@@ -168,15 +168,17 @@ uint8_t tx_cnt(void)
   return 0;// Zwr  0, je li indeksy s r wne (bufor jest pusty)
 }
 //Funkcja od zebrania informacji od uzytkownika i do wlozenia jej w odpowiedznie miejsce do przechowania
-void rx_put(char c)// Zapisz odebrany znak do bufora na pozycj rx_wr
+void rx_put(char c)
 {
- rx_buff[rx_wr] = c;// Zapisz odebrany znak do bufora na pozycj co poda rx_wr
- if (++rx_wr >= RX_SIZE) rx_wr = 0;// Zwi ksz indeks zapisu; w przypadku przepe nienia wr  na pocz tek
- if (c == 13) // Kod ASCII 13 to ENTER (\r)
- {
-  CarRet = 1;
-  UART1_ITConfig(UART1_IT_RXNE_OR, DISABLE); // Blokada odbioru na czas dekodowania
- }
+    if (c == 13) // Enter
+    {
+        CarRet = 1;
+    }
+    else if (c >= ' ' && rx_wr < RX_SIZE) // Zapisuj tylko jeœli to znak (a nie œmieci)
+    {
+        rx_buff[rx_wr] = c;
+        if (++rx_wr >= RX_SIZE) rx_wr = 0;
+    }
 }
 //funkcja do wysylania tekstu: mikro potrafi gadac do kompa
 void send_string(const char* s)//to co wpiszemy rozbija na pojedyncza literke i wsadza do tx_put
@@ -187,36 +189,26 @@ void send_string(const char* s)//to co wpiszemy rozbija na pojedyncza literke i 
 //Magda: fukcja co bierze z terminala co wpisalismy i sorktu i dekoduje z ascii/ zajeba am to od germina bo chuj wie jak to zrobic T^T
 void dekoduj_czas(void)
 {
-  // 1. Zczytujemy liczby z bufora tekstowego (ASCII na int)
-  hour          = (rx_buff[0]  - '0') * 10 + (rx_buff[1]  - '0');
-  minute        = (rx_buff[3]  - '0') * 10 + (rx_buff[4]  - '0');
-  second        = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
-  day           = (rx_buff[9]  - '0') * 10 + (rx_buff[10] - '0');
-  current_month = (rx_buff[12] - '0') * 10 + (rx_buff[13] - '0');
-  
-  year = (rx_buff[15] - '0') * 1000 + 
-         (rx_buff[16] - '0') * 100 + 
-         (rx_buff[17] - '0') * 10 + 
-         (rx_buff[18] - '0');
+    // GG:MM:SS DD.MM.RRRR
+    hour          = (rx_buff[0]  - '0') * 10 + (rx_buff[1]  - '0');
+    // rx_buff[2] to ':' - pomijamy
+    minute        = (rx_buff[3]  - '0') * 10 + (rx_buff[4]  - '0');
+    // rx_buff[5] to ':' - pomijamy
+    second        = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
+    // rx_buff[8] to ' ' (spacja) - pomijamy
+    day           = (rx_buff[9]  - '0') * 10 + (rx_buff[10] - '0');
+    // rx_buff[11] to '.' - pomijamy
+    current_month = (rx_buff[12] - '0') * 10 + (rx_buff[13] - '0');
+    // rx_buff[14] to '.' - pomijamy
+    year          = (rx_buff[15] - '0') * 1000 + (rx_buff[16] - '0') * 100 + (rx_buff[17] - '0') * 10 + (rx_buff[18] - '0');
 
-  // 2. SPRAWDZANIE ZAKRESÓW (Pilnujemy poprawnoœci danych)
-  if (hour >= 24 || minute >= 60 || second >= 60 || 
-      current_month > 12 || current_month == 0 || 
-      day == 0 || day > month[current_month - 1] || year < 2000)
-  {
-    // WYKRYTO B£¥D - Czyœcimy bufor i nie pozwalamy aktywowaæ zegara
-    zegar_zyje = false; 
-    rx_wr = 0; 
-    send_string("\r\nBlad w Zapisie! Podano nieprawidlowe wartosci.\r\n");
-    send_string("Wpisz ponownie (GG:MM:SS DD.MM.RRRR):\r\n");
-  }
-  else
-  {
-    // WSZYSTKO OK - Dane s¹ poprawne, aktywujemy flagê sukcesu
-    zegar_zyje = true;
-    rx_wr = 0; 
-    send_string("\r\nZegarek POWSTAL - Dane poprawne!\r\n");
-  }
+    // WALIDACJA
+    if (hour > 23 || minute > 59 || second > 59 || current_month < 1 || current_month > 12) {
+        send_string("BLAD: Zly format lub dane!\r\n");
+    } else {
+        zegar_zyje = true;
+        send_string("Zegarek ustawiony!\r\n");
+    }
 }
 // Tymek
 // funkcja do inicjalizacji bazera
@@ -266,6 +258,7 @@ void main(void)
   if (CarRet == 1)//Po enterze ON ZYJE MUHAHAHAHAHA
    {
      dekoduj_czas(); // Wywo ujemy nasze dekodowanie
+		 rx_wr = 0;
      CarRet = 0;   // Zerujemy flag Entera
      UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE); // Odblokowujem		y UART do dalszego s uchania
    }
