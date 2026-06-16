@@ -71,6 +71,7 @@ unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
 unsigned int clock_state = 0;
+unsigned int krok_diod = 0;//Magda:
 volatile unsigned int manual_clock_state = 0;
 unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
@@ -231,6 +232,13 @@ void main(void)
 {
  segm_init();
  
+ // Magda: Konfiguracja pinów diod D1-D4 jako wyjœcia (Push-Pull, szybkie)
+   GPIO_Init(GPIOC, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_FAST); // D1
+   GPIO_Init(GPIOC, GPIO_PIN_7, GPIO_MODE_OUT_PP_LOW_FAST); // D2
+   GPIO_Init(GPIOC, GPIO_PIN_6, GPIO_MODE_OUT_PP_LOW_FAST); // D3
+   GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_FAST); // D4
+ 
+ 
  //Konfig guzików
  	GPIO_Init(GPIOB, GPIO_PIN_4, GPIO_MODE_IN_FL_IT); //S1
 	GPIO_Init(GPIOB, GPIO_PIN_3, GPIO_MODE_IN_FL_IT); //S2
@@ -301,6 +309,56 @@ void main(void)
 		if(tick_ms >= 1000 && zegar_zyje == true){
 			tick_ms = 0;
 			second++;
+		//Magda: Ustawianie sekwencji diód (Dopasowane do sterowania stanem NISKIM!)
+		if (krok_diod == 0) {       // Krok 1: Tylko D1 (Low = ON, High = OFF)
+			GPIO_WriteLow(GPIOC, GPIO_PIN_5);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_7);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_6);
+			GPIO_WriteHigh(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 1) {  // Krok 2: D1, D2
+			GPIO_WriteLow(GPIOC, GPIO_PIN_5);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_7);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_6);
+			GPIO_WriteHigh(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 2) {  // Krok 3: D1, D2, D3
+			GPIO_WriteLow(GPIOC, GPIO_PIN_5);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_7);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_6);
+			GPIO_WriteHigh(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 3) {  // Krok 4: D1, D2, D3, D4 (Wszystkie œwiec¹)
+			GPIO_WriteLow(GPIOC, GPIO_PIN_5);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_7);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_6);
+			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 4) {  // Krok 5: D2, D3, D4 (D1 zgaszona)
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_5);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_7);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_6);
+			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 5) {  // Krok 6: D3, D4
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_5);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_7);
+			GPIO_WriteLow(GPIOC, GPIO_PIN_6);
+			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
+		}
+		else if (krok_diod == 6) {  // Krok 7: Tylko D4
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_5);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_7);
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_6);
+			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
+		}
+		
+		// Magda: Zmiana kroku co sekundê i reset na 7 kroku
+		krok_diod++;
+		if (krok_diod >= 7) {
+			krok_diod = 0;
+		}
+		
 			if(second%3 == 0){
 				clock_state = (clock_state+1)%3;
 			}
@@ -312,7 +370,6 @@ void main(void)
 			if(second >=60){
 				second = 0;
 				minute++;
-				
 				if(minute >= 60){
 					minute = 0;
 					hour++;
