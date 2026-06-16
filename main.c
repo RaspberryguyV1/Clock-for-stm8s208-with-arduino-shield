@@ -38,7 +38,7 @@
 
 //Magda: UART
 #define TX_SIZE 96
-#define RX_SIZE 14//na GGMMSSDDMMRR
+#define RX_SIZE 24//na GG:MM:SS DD.MM.RRRR
 /* Private defines -----------------------------------------------------------*/
 //Magda: zmienne do sterowania UART
 //Koszyczki na dane uwu tablice 
@@ -58,7 +58,7 @@ unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to St
 unsigned int day = 0;
 unsigned int hour = 0;
 unsigned int minute = 0;
-unsigned int second = 0;
+unsigned int second = 1;
 unsigned int current_month = 0;
 unsigned int year = 0;
 unsigned int cyfra0 = 0;//cyfry wyswietlane na wyswietlaczu
@@ -99,9 +99,8 @@ void segm_shift(char shift)
     GPIO_WriteHigh(GPIOD,GPIO_PIN_3); //SDI=1
    else
     GPIO_WriteLow(GPIOD,GPIO_PIN_3); //SDI=0
-
-	GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
-	GPIO_WriteLow(GPIOC,GPIO_PIN_3);
+	  GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
+	  GPIO_WriteLow(GPIOC,GPIO_PIN_3);
 
 			
   shift >>= 1;
@@ -180,17 +179,20 @@ void send_string(const char* s)//to co wpiszemy rozbija na pojedyncza literke i 
 //Magda: fukcja co bierze z terminala co wpisalismy i sorktu i dekoduje z ascii/ zajeba am to od germina bo chuj wie jak to zrobic T^T
 void dekoduj_czas(void)
 {
-  // Zamieniamy znaki ASCII z bufora rx_buff na liczby
-  hour = (rx_buff[0] - '0') * 10 + (rx_buff[1] - '0');
-  minute = (rx_buff[2] - '0') * 10 + (rx_buff[3] - '0');
-  second = (rx_buff[4] - '0') * 10 + (rx_buff[5] - '0');
-  day = (rx_buff[6] - '0') * 10 + (rx_buff[7] - '0');
-		current_month = (rx_buff[8] - '0') * 10 + (rx_buff[9] - '0');
-  year = (rx_buff[10] - '0') * 10 + (rx_buff[11] - '0');
+  // Wyci¹gamy cyfry prosto z bufora, poprawiaj¹c koñcówkê o przesuniêcie
+  hour          = (rx_buff[0]  - '0') * 10 + (rx_buff[1]  - '0');
+  minute        = (rx_buff[3]  - '0') * 10 + (rx_buff[4]  - '0');
+  second        = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
+  day           = (rx_buff[9]  - '0') * 10 + (rx_buff[10] - '0');
+  // Przesuniête o 2 pozycje w prawo, ¿eby omin¹æ œmieci z terminala:
+  current_month = (rx_buff[14] - '0') * 10 + (rx_buff[15] - '0');
+  // Rok sk³adamy z pozycji 17, 18, 19, 20
+  year = (rx_buff[17] - '0') * 1000 + 
+         (rx_buff[18] - '0') * 100 + 
+         (rx_buff[19] - '0') * 10 + 
+         (rx_buff[20] - '0');
 
-  // Zegarek dosta czas, wi c ZYJEEEE	
   zegar_zyje = true;
-   
   send_string("Zegarek POWSTAL\r\n");
 }
 // Tymek
@@ -215,16 +217,14 @@ void main(void)
  segm_init();
 	//Konfig Uart z komunikatem:
 	GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_OUT_PP_HIGH_FAST); // PD5 TX (Nadajnik)
- GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_PU_NO_IT);   // PD6 RX (Odbiornik)
+  GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_PU_NO_IT);   // PD6 RX (Odbiornik)
 	UART1_Init((uint32_t)9600, UART1_WORDLENGTH_8D, UART1_STOPBITS_1, UART1_PARITY_NO, UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_TXRX_ENABLE);
- UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE);
+  UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE);
  // Config bazera:
  TIM2_Config();
-  
- GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_LOW_FAST);//Konfiguracja GPIO buzzera
+  GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_LOW_FAST);//Konfiguracja GPIO buzzera
 	GPIO_WriteHigh(GPIOC, GPIO_PIN_1); //Wylaczenie buzzera
-	
-	send_string("Zegarek nie zyje. Ustaw aktualny czas i date (GGMMSSDDMMRR) i kliknij Enter:\r\n");
+	send_string("Zegarek nie zyje. Ustaw aktualny czas i date (GG:MM:SS DD.MM.RRRR) i kliknij Enter:\r\n");
 	//...........................................
 	TIM4_TimeBaseInit(TIM4_PRESCALER_16,124); //Odliczanie 1ms
 	TIM4_ClearFlag(TIM4_FLAG_UPDATE);
