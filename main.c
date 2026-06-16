@@ -1,4 +1,4 @@
-mam teraz tak /**
+/**
   ******************************************************************************
   * @file    Project/main.c 
   * @author  MCD Application Team
