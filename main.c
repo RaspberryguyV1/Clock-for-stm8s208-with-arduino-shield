@@ -71,6 +71,8 @@ unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
 unsigned int clock_state = 0;
+volatile unsigned int manual_clock_state = 0;
+unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
 // Tymek:
 uint16_t period = 999; //do bazera (okres)
@@ -240,6 +242,8 @@ void main(void)
  //Konfig guzików
  	GPIO_Init(GPIOB, GPIO_PIN_4, GPIO_MODE_IN_FL_IT); //S1
 	GPIO_Init(GPIOB, GPIO_PIN_3, GPIO_MODE_IN_FL_IT); //S2
+	
+	EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOB, EXTI_SENSITIVITY_RISE_FALL);
 	//Konfig Uart z komunikatem:
 	GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_OUT_PP_HIGH_FAST); // PD5 TX (Nadajnik)
   GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_PU_NO_IT);   // PD6 RX (Odbiornik)
@@ -274,8 +278,12 @@ void main(void)
 	   GPIO_WriteLow(GPIOC, GPIO_PIN_1); //wlacz buzzer
 	  }
 	}
-	
-	switch(clock_state){
+		if (manual_clock_state != 1) {
+        current_display_state = manual_clock_state; // Wymuszenie guzikiem
+    } else {
+        current_display_state = clock_state; // Normalna rotacja
+    }
+	switch(current_display_state){
 		case 1:
 			intigers[2] = seconds[2];
 			intigers[3] = seconds[3];
@@ -300,13 +308,13 @@ void main(void)
 		if(tick_ms >= 1000 && zegar_zyje == true){
 			tick_ms = 0;
 			second++;
-			convertNumber(second,seconds);
-			convertNumber(minute,minutes);
-			convertNumber(hour, hours);
-			convertNumber(day, days);
-			convertNumber(current_month, months);
 			if(second%3 == 0){
 				clock_state = (clock_state+1)%3;
+			}
+			if (manual_clock_state != 0) {
+        current_display_state = manual_clock_state; // Wymuszenie guzikiem
+			} else {
+        current_display_state = clock_state; // Normalna rotacja
 			}
 			if(second >=60){
 				second = 0;
@@ -329,6 +337,11 @@ void main(void)
 					}
 				}
 			}
+			convertNumber(second,seconds);
+			convertNumber(minute,minutes);
+			convertNumber(hour, hours);
+			convertNumber(day, days);
+			convertNumber(current_month, months);
 		}
  }
 }

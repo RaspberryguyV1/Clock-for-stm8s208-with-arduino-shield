@@ -39,7 +39,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern volatile unsigned int tick_ms;
-extern volatile unsigned int clock_state;
+extern volatile unsigned int manual_clock_state;
 
 //Magda: funkcje do sterwoania uart z main.c
 extern void rx_put(char c);
@@ -132,20 +132,20 @@ INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
   * @param  None
   * @retval None
   */
+
 INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
 {
-  // Obs³uga przycisków S1 (PB4) i S2 (PB3)
   if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_4) == RESET) 
   {
-      clock_state = 1;
+      manual_clock_state = 0; // S1 wciskany
   }
   else if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_3) == RESET) 
   {
-      clock_state = 2;
+      manual_clock_state = 2; // S2 wciskany
   }
   else 
   {
-      clock_state = 0; 
+      manual_clock_state = 1; // Puszczone
   }
 }
 
