@@ -191,12 +191,12 @@ void dekoduj_czas(void)
   second        = (rx_buff[6]  - '0') * 10 + (rx_buff[7]  - '0');
   day           = (rx_buff[9]  - '0') * 10 + (rx_buff[10] - '0');
   // Przesuni te o 2 pozycje w prawo,  eby omin    mieci z terminala:
-  current_month = (rx_buff[14] - '0') * 10 + (rx_buff[15] - '0');
+  current_month = (rx_buff[12] - '0') * 10 + (rx_buff[13] - '0');
   // Rok sk adamy z pozycji 17, 18, 19, 20
-  year = (rx_buff[17] - '0') * 1000 + 
-         (rx_buff[18] - '0') * 100 + 
-         (rx_buff[19] - '0') * 10 + 
-         (rx_buff[20] - '0');
+		year = (rx_buff[15] - '0') * 1000 + 
+           (rx_buff[16] - '0') * 100 + 
+           (rx_buff[17] - '0') * 10 + 
+           (rx_buff[18] - '0');
 
   zegar_zyje = true;
   send_string("Zegarek POWSTAL\r\n");
@@ -293,7 +293,7 @@ void main(void)
 				second = 0;
 				minute++;
 				
-				if(minute >= 59){
+				if(minute >= 60){
 					minute = 0;
 					hour++;
 					
