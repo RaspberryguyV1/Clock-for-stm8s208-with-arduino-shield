@@ -137,7 +137,7 @@ INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
 {
   if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_4) == RESET) 
   {
-      manual_clock_state = 1; // S1 wciskany
+      manual_clock_state = 0; // S1 wciskany
   }
   else if (GPIO_ReadInputPin(GPIOB, GPIO_PIN_3) == RESET) 
   {
@@ -145,7 +145,7 @@ INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
   }
   else 
   {
-      manual_clock_state = 0; // Puszczone
+      manual_clock_state = 1; // Puszczone
   }
 }
 

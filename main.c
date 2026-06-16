@@ -263,7 +263,7 @@ void main(void)
 	   GPIO_WriteLow(GPIOC, GPIO_PIN_1); //wlacz buzzer
 	  }
 	}
-		if (manual_clock_state != 0) {
+		if (manual_clock_state != 1) {
         current_display_state = manual_clock_state; // Wymuszenie guzikiem
     } else {
         current_display_state = clock_state; // Normalna rotacja
