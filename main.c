@@ -53,18 +53,24 @@ uint8_t ind;//Zmienna pomocnicza (indeks) u ywana w p tlach do czyszczenia lub k
 // Magda: Flaga zegara - na starcie false (zegar stoi, dop ki UART nie wy le czasu)
 volatile bool zegar_zyje = false;
 
-unsigned int tick_ms = 0;
+volatile unsigned int tick_ms = 0;
 unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Stycze , month[1] to Luty itp.
 unsigned int day = 0;
+int days[4] = {0,0,0,0};
 unsigned int hour = 0;
+int hours[4] = {0,0,0,0};
 unsigned int minute = 0;
-unsigned int second = 0;
+int minutes[4] = {0,0,0,0};
+unsigned int second = 1;
+int seconds[4] = {0,0,0,0};
 unsigned int current_month = 0;
+int months[4] = {0,0,0,0};
 unsigned int year = 0;
 unsigned int cyfra0 = 0;//cyfry wyswietlane na wyswietlaczu
 unsigned int cyfra1 = 0;
 unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
+unsigned int clock_state = 0;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
 // Tymek:
 uint16_t period = 999; //do bazera (okres)
@@ -130,7 +136,7 @@ void convertNumber(int number, int numbersArray[]){
 
 }
 //Funkcja do odswiezania ekranu za pomoca pobranych wartoci z tablicy intigers!!!
-void refreshSegm(){//odswierza ekran 
+void refreshSegm(void){//odswierza ekran 
 	segm_latch(0, segm_dec[intigers[0]]);
 	segm_latch(1, segm_dec[intigers[1]]);
 	segm_latch(2, segm_dec[intigers[2]]);
@@ -233,6 +239,7 @@ void main(void)
 	enableInterrupts();
  while (1)//Hubert: liczenie dni
  {
+
   if (CarRet == 1)//Po enterze ON ZYJE MUHAHAHAHAHA
    {
      dekoduj_czas(); // Wywo ujemy nasze dekodowanie
@@ -247,16 +254,49 @@ void main(void)
 	  else {
 	   GPIO_WriteLow(GPIOC, GPIO_PIN_1); //wlacz buzzer
 	  }
-  }
+	}
+	
+	switch(clock_state){
+		case 1:
+			intigers[2] = seconds[2];
+			intigers[3] = seconds[3];
+			intigers[0] = 0;
+			intigers[1] = 0;
+			break;
+		case 2:
+			intigers[2] = days[2];
+			intigers[3] = days[3];
+			intigers[0] = months[2];
+			intigers[1] = months[3];
+			break;
+		case 0:
+			intigers[2] = minutes[2];
+			intigers[3] = minutes[3];
+			intigers[0] = hours[2];
+			intigers[1] = hours[3];
+			break;
+		
+	}
+	refreshSegm();
 		if(tick_ms >= 1000){
 			tick_ms = 0;
 			second++;
+			convertNumber(second,seconds);
+			convertNumber(minute,minutes);
+			convertNumber(hour, hours);
+			convertNumber(day, days);
+			convertNumber(current_month, months);
+			if(second%3 == 0){
+				clock_state = (clock_state+1)%3;
+			}
 			if(second >=60){
 				second = 0;
 				minute++;
-				if(minute >= 60){
+				
+				if(minute >= 59){
 					minute = 0;
 					hour++;
+					
 					if(hour >= 24){
 						day++;
 						hour = 0;
@@ -271,7 +311,6 @@ void main(void)
 				}
 			}
 		}
-   segm_latch(0, segm_dec[3]);
  }
 }
 
