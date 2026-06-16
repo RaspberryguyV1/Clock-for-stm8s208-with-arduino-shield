@@ -212,7 +212,7 @@ void main(void)
       }
 		if(tick_ms >= 1000){
 			tick_ms = 0;
-			second++;
+			//second++;
 			if(second >=60){
 				second = 0;
 				minute++;
