@@ -67,9 +67,66 @@ unsigned int krok_diod = 0;//Magda: Licznik krokow sekwencji diod, steruje zmian
 volatile unsigned int manual_clock_state = 0;
 unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
-// Tymek:
-uint16_t period = 999; //do bazera (okres)
-uint16_t time = 499; //do bazera
+
+// BPM Barki Krawczyka: 74
+unsigned int BPM = 74
+
+#define CALA(bpm)        (240000 / (bpm))
+#define POLNUTA(bpm)     (120000 / (bpm))
+#define CWIERCNUTA(bpm)  (60000 / (bpm))
+#define OSEMKA(bpm)      (30000 / (bpm))
+#define SZESNASTKA(bpm)  (15000 / (bpm))
+
+#define C CALA(bpm)
+#define P POLNUTA(bpm)
+#define CW CWIERCNUTA(bpm)
+#define O OSEMKA(bpm)
+#define SZ SZESNASTKA(bpm)
+
+/* ================= OCTAVE 3 ================= */
+
+#define C3   7645
+#define CS3  7215
+#define D3   6810
+#define DS3  6428
+#define E3   6067
+#define F3   5727
+#define FS3  5405
+#define G3   5102
+#define GS3  4816
+#define A3   4545
+#define AS3  4290
+#define H3   4050
+
+/* ================= OCTAVE 4 ================= */
+
+#define C4   3822
+#define CS4  3608
+#define D4   3405
+#define DS4  3214
+#define E4   3034
+#define F4   2863
+#define FS4  2703
+#define G4   2551
+#define GS4  2408
+#define A4   2273
+#define AS4  2145
+#define A4   2025
+
+/* ================= OCTAVE 5 ================= */
+
+#define C5   1911
+#define CS5  1804
+#define D5   1703
+#define DS5  1607
+#define E5   1517
+#define F5   1432
+#define FS5  1351
+#define G5   1276
+#define GS5  1204
+#define A5   1136
+#define AS5  1073
+#define A5   1012
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -211,13 +268,103 @@ void dekoduj_czas(void)
 }
 
 // Tymek
-void TIM2_Config(void)
-{
- TIM2_TimeBaseInit(TIM2_PRESCALER_2, period); 
- TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE,time, TIM2_OCPOLARITY_HIGH); 
- TIM2_OC1PreloadConfig(ENABLE);
- TIM2_ARRPreloadConfig(ENABLE);
- TIM2_Cmd(ENABLE);
+void TIM2_Config(void) {
+	TIM2_TimeBaseInit(TIM2_PRESCALER_2, C4);
+	TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, C4 / 35, TIM2_OCPOLARITY_HIGH);
+	TIM2_OC1PreloadConfig(ENABLE);
+	TIM2_ARRPreloadConfig(ENABLE);
+	TIM2_Cmd(ENABLE);
+}
+
+void play_for(uint16_t time_ms) {
+  //ze wzglêdu na ograniczenia zmiennej tick_ms trzeba dodaæ zmienn¹ overflow
+  unsigned int overflow = 0;
+  tick_ms = 0;
+  while(overflow*255 + tick_ms < time_ms) {
+    if(tick_ms == 255) {
+      overflow = overflow + 1;
+    }
+		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
+			GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
+		else
+      GPIO_WriteLow(GPIOC, GPIO_PIN_1);
+  }
+}
+void play_note(uint16_t period, uint16_t time_ms) {
+  TIM2_SetAutoreload(period);
+  TIM2_SetCompare1(period/35);
+  play_for(time_ms);
+  GPIO_WriteLow(GPIOC, GPIO_PIN_1)
+}
+void play_barka(unsigned int bpm){
+  play_note(C4, P);
+  play_note(D4, O);
+  play_note(E4, O);
+  play_note(F4, O);
+  play_note(E4, O);
+  play_note(D4, O);
+  play_note(C4, CW + O);
+  play_note(C4, P);
+  play_note(D4, CW);
+  play_note(E4, O);
+  play_note(F4, CW + O);
+  play_note(F4, P + O);
+  play_note(F4, O);
+  play_note(F4, O);
+  play_note(F4, O);
+  play_note(E4, O);
+  play_note(D4, CW + O);
+  play_note(D4, P + CW);
+  play_note(G3, O);
+  play_note(C4, CW);
+  play_note(D4, O);
+  play_note(E4, CW + O);
+  play_note(E4, CW + O);
+  play_note(E4, O);
+  play_note(F4, CW);
+  play_note(D4, O);
+  play_note(C4, CW + O);
+  play_note(C4, P);
+  play_note(C4, CW + O);
+  play_note(A4, CW + O);
+  play_note(A4, CW + O);
+  play_note(A4, P);
+  play_note(A4, O);
+  play_note(B4, O);
+  play_note(C5, O);
+  play_note(A4, O);
+  play_note(G4, CW + O);
+  play_note(G4, P + O);
+  play_note(F4, CW);
+  play_note(E4, O);
+  play_note(F4, CW + O);
+  play_note(F4, CW + O);
+  play_note(F4, O);
+  play_note(G4, O);
+  play_note(A4, O);
+  play_note(G4, O);
+  play_note(F4, O);
+  play_note(E4, CW + O);
+  play_note(E4, P);
+  play_note(C4, CW);
+  play_note(C4, O);
+  play_note(A4, CW + O);
+  play_note(A4, P);
+  play_note(A4, O);
+  play_note(B4, O);
+  play_note(C5, O);
+  play_note(A4, O);
+  play_note(G4, P);
+  play_note(F4, CW);
+  play_note(E4, O);
+  play_note(F4, CW + O);
+  play_note(F4, P);
+  play_note(D4, O);
+  play_note(E4, O);
+  play_note(F4, O);
+  play_note(E4, O);
+  play_note(D4, O);
+  play_note(C4, C);
 }
 
 void main(void)
@@ -241,7 +388,7 @@ void main(void)
 	UART1_Init((uint32_t)9600, UART1_WORDLENGTH_8D, UART1_STOPBITS_1, UART1_PARITY_NO, UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_TXRX_ENABLE);
   UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE);
  // Config bazera:
- TIM2_Config();
+  TIM2_Config();
   GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_LOW_FAST);
 	GPIO_WriteHigh(GPIOC, GPIO_PIN_1); 
 	send_string("Zegarek nie zyje. Ustaw aktualny czas i date (GG:MM:SS DD.MM.RRRR) i kliknij Enter:\r\n");
@@ -266,12 +413,7 @@ void main(void)
    }
   // sprawdzamy czy jest polnoc
   if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second ==00 || second == 60)) {
-	  if(GPIO_ReadInputPin(GPIOD,GPIO_PIN_4) == RESET) { 
-	    GPIO_WriteHigh(GPIOC, GPIO_PIN_1); 
-   }
-	  else {
-	   GPIO_WriteLow(GPIOC, GPIO_PIN_1); 
-	  }
+	  play_barka(BPM);
 	}
 	if (manual_clock_state != 1) {
         current_display_state = manual_clock_state; 
