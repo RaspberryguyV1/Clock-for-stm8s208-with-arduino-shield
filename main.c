@@ -46,6 +46,9 @@ uint8_t ind;//Zmienna pomocnicza (indeks) uzywana w petlach do czyszczenia bufor
 volatile bool zegar_zyje = false;
 
 volatile unsigned int tick_ms = 0;
+volatile unsigned int play = 0;
+volatile unsigned int note_len = 0;
+volatile unsigned int period = 0;
 unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Stycze , month[1] to Luty itp.
 unsigned int day = 0;
 int days[4] = {0,0,0,0};
@@ -69,7 +72,7 @@ unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
 
 // BPM Barki Krawczyka: 74
-unsigned int BPM = 74;
+unsigned int bpm = 74;
 
 #define CALA(bpm)        (240000 / (bpm))
 #define POLNUTA(bpm)     (120000 / (bpm))
@@ -127,6 +130,8 @@ unsigned int BPM = 74;
 #define A5   1136
 #define AS5  1073
 #define B5   1012
+
+#define PLAY_NOTE(l, p) (tick_ms = 0; play = 1; note_len = l; period = p)
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -276,7 +281,7 @@ void TIM2_Config(void) {
 	TIM2_Cmd(ENABLE);
 }
 
-void play_for(uint16_t time_ms) {
+/*void play_for(uint16_t time_ms) {
     tick_ms = 0; // Resetujemy licznik czasu
 
     // Czekamy, a¿ tick_ms doliczy do czasu trwania nuty
@@ -290,7 +295,7 @@ void play_for(uint16_t time_ms) {
 						
     }
 }
-void play_note(uint16_t period, uint16_t time_ms) {
+void PLAY_NOTE(uint16_t period, uint16_t time_ms) {
   TIM2_SetAutoreload(period);
   TIM2_SetCompare1(period/35);
   play_for(time_ms);
@@ -299,76 +304,76 @@ void play_note(uint16_t period, uint16_t time_ms) {
 void play_barka(unsigned int bpm){
 	manual_clock_state = 1;
 	refreshSegm();
-  play_note(C4, P);
-  play_note(D4, O);
-  play_note(E4, O);
-  play_note(F4, O);
-  play_note(E4, O);
-  play_note(D4, O);
-  play_note(C4, CW + O);
-  play_note(C4, P);
-  play_note(D4, CW);
-  play_note(E4, O);
-  play_note(F4, CW + O);
-  play_note(F4, P + O);
-  play_note(F4, O);
-  play_note(F4, O);
-  play_note(F4, O);
-  play_note(E4, O);
-  play_note(D4, CW + O);
-  play_note(D4, P + CW);
-  play_note(G3, O);
-  play_note(C4, CW);
-  play_note(D4, O);
-  play_note(E4, CW + O);
-  play_note(E4, CW + O);
-  play_note(E4, O);
-  play_note(F4, CW);
-  play_note(D4, O);
-  play_note(C4, CW + O);
-  play_note(C4, P);
-  play_note(C4, CW + O);
-  play_note(A4, CW + O);
-  play_note(A4, CW + O);
-  play_note(A4, P);
-  play_note(A4, O);
-  play_note(B4, O);
-  play_note(C5, O);
-  play_note(A4, O);
-  play_note(G4, CW + O);
-  play_note(G4, P + O);
-  play_note(F4, CW);
-  play_note(E4, O);
-  play_note(F4, CW + O);
-  play_note(F4, CW + O);
-  play_note(F4, O);
-  play_note(G4, O);
-  play_note(A4, O);
-  play_note(G4, O);
-  play_note(F4, O);
-  play_note(E4, CW + O);
-  play_note(E4, P);
-  play_note(C4, CW);
-  play_note(C4, O);
-  play_note(A4, CW + O);
-  play_note(A4, P);
-  play_note(A4, O);
-  play_note(B4, O);
-  play_note(C5, O);
-  play_note(A4, O);
-  play_note(G4, P);
-  play_note(F4, CW);
-  play_note(E4, O);
-  play_note(F4, CW + O);
-  play_note(F4, P);
-  play_note(D4, O);
-  play_note(E4, O);
-  play_note(F4, O);
-  play_note(E4, O);
-  play_note(D4, O);
-  play_note(C4, C);
+  PLAY_NOTE(C4, P);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(C4, P);
+  PLAY_NOTE(D4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, P + O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, CW + O);
+  PLAY_NOTE(D4, P + CW);
+  PLAY_NOTE(G3, O);
+  PLAY_NOTE(C4, CW);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(C4, P);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, P);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(B4, O);
+  PLAY_NOTE(C5, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, CW + O);
+  PLAY_NOTE(G4, P + O);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(G4, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, P);
+  PLAY_NOTE(C4, CW);
+  PLAY_NOTE(C4, O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, P);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(B4, O);
+  PLAY_NOTE(C5, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, P);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, P);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, C);
 	GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
-}
+}*/
 
 void main(void)
 {
@@ -415,10 +420,78 @@ void main(void)
       UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE); 
    }
   // sprawdzamy czy jest polnoc
-  if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second ==00 || second == 60)) {
-	  play_barka(BPM);
-		second = 59;
-	}
+  if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second == 00 || second == 60)) {
+	play = 1;
+	PLAY_NOTE(C4, P);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(C4, P);
+  PLAY_NOTE(D4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, P + O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, CW + O);
+  PLAY_NOTE(D4, P + CW);
+  PLAY_NOTE(G3, O);
+  PLAY_NOTE(C4, CW);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(C4, P);
+  PLAY_NOTE(C4, CW + O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, P);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(B4, O);
+  PLAY_NOTE(C5, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, CW + O);
+  PLAY_NOTE(G4, P + O);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(G4, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, CW + O);
+  PLAY_NOTE(E4, P);
+  PLAY_NOTE(C4, CW);
+  PLAY_NOTE(C4, O);
+  PLAY_NOTE(A4, CW + O);
+  PLAY_NOTE(A4, P);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(B4, O);
+  PLAY_NOTE(C5, O);
+  PLAY_NOTE(A4, O);
+  PLAY_NOTE(G4, P);
+  PLAY_NOTE(F4, CW);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, CW + O);
+  PLAY_NOTE(F4, P);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(F4, O);
+  PLAY_NOTE(E4, O);
+  PLAY_NOTE(D4, O);
+  PLAY_NOTE(C4, C);
+	play = 0;
+		}
 	if (manual_clock_state != 1) {
         current_display_state = manual_clock_state; 
     } else {

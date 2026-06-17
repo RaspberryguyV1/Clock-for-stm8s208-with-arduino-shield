@@ -40,7 +40,9 @@
 /* Private variables ---------------------------------------------------------*/
 extern volatile unsigned int tick_ms;
 extern volatile unsigned int manual_clock_state;
-
+extern volatile unsigned int play = 0;
+extern volatile unsigned int note_len = 0;
+extern volatile unsigned int period = 0;
 //Magda: funkcje do sterwoania uart z main.c
 extern void rx_put(char c);
 extern uint8_t tx_get(void);
@@ -523,6 +525,17 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   */
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
+	  if(play == 1){
+			TIM2_SetAutoreload(period);
+      TIM2_SetCompare1(period/35);
+			if(tick_ms <= note_len) {
+				if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
+            GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
+        else
+            GPIO_WriteLow(GPIOC, GPIO_PIN_1);
+		}
+	  
+		}
     tick_ms++;
     TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
  }
