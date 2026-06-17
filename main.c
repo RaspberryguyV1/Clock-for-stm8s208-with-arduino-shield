@@ -53,7 +53,7 @@ unsigned int hour = 0;
 int hours[4] = {0,0,0,0};
 unsigned int minute = 0;
 int minutes[4] = {0,0,0,0};
-unsigned int second = 1;
+volatile unsigned int second = 1;
 int seconds[4] = {0,0,0,0};
 unsigned int current_month = 0;
 int months[4] = {0,0,0,0};
@@ -69,7 +69,7 @@ unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
 
 // BPM Barki Krawczyka: 74
-unsigned int BPM = 74
+unsigned int BPM = 74;
 
 #define CALA(bpm)        (240000 / (bpm))
 #define POLNUTA(bpm)     (120000 / (bpm))
@@ -96,7 +96,7 @@ unsigned int BPM = 74
 #define GS3  4816
 #define A3   4545
 #define AS3  4290
-#define H3   4050
+#define B3   4050
 
 /* ================= OCTAVE 4 ================= */
 
@@ -111,7 +111,7 @@ unsigned int BPM = 74
 #define GS4  2408
 #define A4   2273
 #define AS4  2145
-#define A4   2025
+#define B4   2025
 
 /* ================= OCTAVE 5 ================= */
 
@@ -126,7 +126,7 @@ unsigned int BPM = 74
 #define GS5  1204
 #define A5   1136
 #define AS5  1073
-#define A5   1012
+#define B5   1012
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -277,26 +277,28 @@ void TIM2_Config(void) {
 }
 
 void play_for(uint16_t time_ms) {
-  //ze wzglêdu na ograniczenia zmiennej tick_ms trzeba dodaæ zmienn¹ overflow
-  unsigned int overflow = 0;
-  tick_ms = 0;
-  while(overflow*255 + tick_ms < time_ms) {
-    if(tick_ms == 255) {
-      overflow = overflow + 1;
+    tick_ms = 0; // Resetujemy licznik czasu
+
+    // Czekamy, a¿ tick_ms doliczy do czasu trwania nuty
+    while(tick_ms < time_ms) {
+        // Obs³uga buzzera w czasie czekania
+        if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
+            GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
+        else
+            GPIO_WriteLow(GPIOC, GPIO_PIN_1);
+					
+						
     }
-		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
-			GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
-		else
-      GPIO_WriteLow(GPIOC, GPIO_PIN_1);
-  }
 }
 void play_note(uint16_t period, uint16_t time_ms) {
   TIM2_SetAutoreload(period);
   TIM2_SetCompare1(period/35);
   play_for(time_ms);
-  GPIO_WriteLow(GPIOC, GPIO_PIN_1)
+  GPIO_WriteLow(GPIOC, GPIO_PIN_1);
 }
 void play_barka(unsigned int bpm){
+	manual_clock_state = 1;
+	refreshSegm();
   play_note(C4, P);
   play_note(D4, O);
   play_note(E4, O);
@@ -365,6 +367,7 @@ void play_barka(unsigned int bpm){
   play_note(E4, O);
   play_note(D4, O);
   play_note(C4, C);
+	GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
 }
 
 void main(void)
@@ -414,6 +417,7 @@ void main(void)
   // sprawdzamy czy jest polnoc
   if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second ==00 || second == 60)) {
 	  play_barka(BPM);
+		second = 59;
 	}
 	if (manual_clock_state != 1) {
         current_display_state = manual_clock_state; 
