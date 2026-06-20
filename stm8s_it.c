@@ -39,7 +39,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern volatile unsigned int tick_ms;
-extern volatile unsigned int manual_clock_state;
 extern volatile unsigned int play = 0;
 extern volatile unsigned int note_len = 0;
 extern volatile unsigned int period = 0;
@@ -350,7 +349,7 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_TX_IRQHandler, 17)
  {
-     // Magda: Obs³uga wysy³ania znaków z bufora na komputer
+     // Magda: Obsï¿½uga wysyï¿½ania znakï¿½w z bufora na komputer
      if (UART1_GetITStatus(UART1_IT_TXE) != RESET)
      {
          if (tx_cnt())
@@ -371,14 +370,14 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_RX_IRQHandler, 18)
  {
-     // Magda: Przekazanie odebranego znaku bezpoœrednio do funkcji rx_put
+     // Magda: Przekazanie odebranego znaku bezpoï¿½rednio do funkcji rx_put
      if (UART1_GetITStatus(UART1_IT_RXNE) != RESET)
      {
          rx_put(UART1_ReceiveData8());
          UART1_ClearITPendingBit(UART1_IT_RXNE);
      }
      
-     // Zabezpieczenie przed przepe³nieniem (Overrun Error) sprzêtowego bufora UART
+     // Zabezpieczenie przed przepeï¿½nieniem (Overrun Error) sprzï¿½towego bufora UART
      if (UART1_GetITStatus(UART1_IT_OR) != RESET)
      {
          UART1_ReceiveData8(); 
@@ -526,13 +525,14 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
 	  if(play == 1){
-			TIM2_SetAutoreload(period);
-      TIM2_SetCompare1(period/35);
-			if(tick_ms <= note_len) {
-				if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
+			if(0 != note_len) {
+				if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET) {
             GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
-        else
+        }
+        else {
             GPIO_WriteLow(GPIOC, GPIO_PIN_1);
+        }
+			  note_len--;
 		}
 	  
 		}

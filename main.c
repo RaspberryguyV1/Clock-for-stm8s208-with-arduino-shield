@@ -131,7 +131,9 @@ unsigned int bpm = 74;
 #define AS5  1073
 #define B5   1012
 
-#define PLAY_NOTE(l, p) (tick_ms = 0; play = 1; note_len = l; period = p)
+int note_index = 0;
+int note_array[68] = {C4, D4, E4, F4, E4, D4, C4, C4, D4, E4, F4, F4, F4, F4, F4, E4, D4, D4, G3, C4, D4, E4, E4, E4, F4, D4, C4, C4, C4, A4, A4, A4, A4, B4, C5, A4, G4, G4, F4, E4, F4, F4, F4, G4, A4, G4, F4, E4, E4, C4, C4, A4, A4, A4, B4, C5, A4, G4, F4, E4, F4, F4, D4, E4, F4, E4, D4, C4};
+int note_len_array[68] = {P, O, O, O, O, O, CW + O, P, CW, O, CW + O, P + O, O, O, O, O, CW + O, P + CW, O, CW, O, CW + O, CW + O, O, CW, O, CW + O, P, CW + O, CW + O, CW + O, P, O, O, O, O, CW + O, P + O, CW, O, CW + O, CW + O, O, O, O, O, O, CW + O, P, CW, O, CW + O, P, O, O, O, O, P, CW, O, CW + O, P, O, O, O, O, O, C};
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 char segm_dec[10] = 
@@ -281,100 +283,6 @@ void TIM2_Config(void) {
 	TIM2_Cmd(ENABLE);
 }
 
-/*void play_for(uint16_t time_ms) {
-    tick_ms = 0; // Resetujemy licznik czasu
-
-    // Czekamy, a¿ tick_ms doliczy do czasu trwania nuty
-    while(tick_ms < time_ms) {
-        // Obs³uga buzzera w czasie czekania
-        if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET)
-            GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
-        else
-            GPIO_WriteLow(GPIOC, GPIO_PIN_1);
-					
-						
-    }
-}
-void PLAY_NOTE(uint16_t period, uint16_t time_ms) {
-  TIM2_SetAutoreload(period);
-  TIM2_SetCompare1(period/35);
-  play_for(time_ms);
-  GPIO_WriteLow(GPIOC, GPIO_PIN_1);
-}
-void play_barka(unsigned int bpm){
-	manual_clock_state = 1;
-	refreshSegm();
-  PLAY_NOTE(C4, P);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(C4, P);
-  PLAY_NOTE(D4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, P + O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, CW + O);
-  PLAY_NOTE(D4, P + CW);
-  PLAY_NOTE(G3, O);
-  PLAY_NOTE(C4, CW);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(C4, P);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, P);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(B4, O);
-  PLAY_NOTE(C5, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, CW + O);
-  PLAY_NOTE(G4, P + O);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(G4, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, P);
-  PLAY_NOTE(C4, CW);
-  PLAY_NOTE(C4, O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, P);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(B4, O);
-  PLAY_NOTE(C5, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, P);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, P);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, C);
-	GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
-}*/
-
 void main(void)
 {
  segm_init();
@@ -421,82 +329,20 @@ void main(void)
    }
   // sprawdzamy czy jest polnoc
   if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second == 00 || second == 60)) {
+	period = note_array[note_index];
+	note_len = note_len_array[note_index];
 	play = 1;
-	PLAY_NOTE(C4, P);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(C4, P);
-  PLAY_NOTE(D4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, P + O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, CW + O);
-  PLAY_NOTE(D4, P + CW);
-  PLAY_NOTE(G3, O);
-  PLAY_NOTE(C4, CW);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(C4, P);
-  PLAY_NOTE(C4, CW + O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, P);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(B4, O);
-  PLAY_NOTE(C5, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, CW + O);
-  PLAY_NOTE(G4, P + O);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(G4, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, CW + O);
-  PLAY_NOTE(E4, P);
-  PLAY_NOTE(C4, CW);
-  PLAY_NOTE(C4, O);
-  PLAY_NOTE(A4, CW + O);
-  PLAY_NOTE(A4, P);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(B4, O);
-  PLAY_NOTE(C5, O);
-  PLAY_NOTE(A4, O);
-  PLAY_NOTE(G4, P);
-  PLAY_NOTE(F4, CW);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, CW + O);
-  PLAY_NOTE(F4, P);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(F4, O);
-  PLAY_NOTE(E4, O);
-  PLAY_NOTE(D4, O);
-  PLAY_NOTE(C4, C);
-	play = 0;
-		}
-	if (manual_clock_state != 1) {
-        current_display_state = manual_clock_state; 
-    } else {
-        current_display_state = clock_state; 
-    }
+	}
+	if (play == 1 && note_len == 0 && note_index = 67) {
+		play = 0;
+	}
+	else if (play == 1 && note_len == 0) {
+		note_index++;
+		period = note_array[note_index];
+		note_len = note_len_array[note_index];
+		TIM2_SetAutoreload(period);
+    TIM2_SetCompare1(period/35);
+	}
 	switch(current_display_state){
 		case 1:
 			intigers[2] = seconds[2];
