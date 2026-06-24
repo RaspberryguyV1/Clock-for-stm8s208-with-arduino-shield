@@ -44,10 +44,10 @@ volatile uint8_t CarRet = 0; // Flaga Entera
 uint8_t ind;//Zmienna pomocnicza (indeks) uzywana w petlach do czyszczenia bufora odbiorczego
 // Magda: Flaga zegara -na starcie false (zegar stoi, dopoki UART nie dostanie poprawnego czasu)
 volatile bool zegar_zyje = false;
-
+volatile unsigned int manual_clock_state = 0;
 volatile unsigned int tick_ms = 0;
 volatile unsigned int play = 0;
-volatile unsigned int note_len = 0;
+volatile int note_len = 0;
 volatile unsigned int period = 0;
 unsigned int month[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; //month[0] to Stycze , month[1] to Luty itp.
 unsigned int day = 0;
@@ -67,12 +67,11 @@ unsigned int cyfra2 = 0;
 unsigned int cyfra3 = 0;
 unsigned int clock_state = 0;
 unsigned int krok_diod = 0;//Magda: Licznik krokow sekwencji diod, steruje zmianom diud.
-volatile unsigned int manual_clock_state = 0;
 unsigned int current_display_state;
 int intigers[4] = {0,0,0,0}; //Wpisujecie ta liste jako drugi element funkcji convertNumber.
 
 // BPM Barki Krawczyka: 74
-unsigned int bpm = 74;
+#define bpm 74
 
 #define CALA(bpm)        (240000 / (bpm))
 #define POLNUTA(bpm)     (120000 / (bpm))
@@ -276,8 +275,8 @@ void dekoduj_czas(void)
 
 // Tymek
 void TIM2_Config(void) {
-	TIM2_TimeBaseInit(TIM2_PRESCALER_2, C4);
-	TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, C4 / 35, TIM2_OCPOLARITY_HIGH);
+	TIM2_TimeBaseInit(TIM2_PRESCALER_2, 3822);
+	TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, 3822 / 35, TIM2_OCPOLARITY_HIGH);
 	TIM2_OC1PreloadConfig(ENABLE);
 	TIM2_ARRPreloadConfig(ENABLE);
 	TIM2_Cmd(ENABLE);
@@ -327,22 +326,6 @@ void main(void)
       CarRet = 0;   
       UART1_ITConfig(UART1_IT_RXNE_OR, ENABLE); 
    }
-  // sprawdzamy czy jest polnoc
-  if ((hour == 0 || hour == 24) && (minute == 0 || minute == 60) && (second == 00 || second == 60)) {
-	period = note_array[note_index];
-	note_len = note_len_array[note_index];
-	play = 1;
-	}
-	if (play == 1 && note_len == 0 && note_index = 67) {
-		play = 0;
-	}
-	else if (play == 1 && note_len == 0) {
-		note_index++;
-		period = note_array[note_index];
-		note_len = note_len_array[note_index];
-		TIM2_SetAutoreload(period);
-    TIM2_SetCompare1(period/35);
-	}
 	switch(current_display_state){
 		case 1:
 			intigers[2] = seconds[2];
@@ -422,11 +405,6 @@ void main(void)
 		if(second%3 == 0){
 			clock_state = (clock_state+1)%3;
 		}
-		if (manual_clock_state != 0) {
-			current_display_state = manual_clock_state; 
-		} else {
-			current_display_state = clock_state; 
-		}
 		if(second >=60){
 			second = 0;
 			minute++;
@@ -437,6 +415,7 @@ void main(void)
 				if(hour >= 24){
 					day++;
 					hour = 0;
+					play = 1;
 					if(day > month[current_month-1]){
 						current_month++;
 						day = 1;
@@ -447,6 +426,17 @@ void main(void)
 				}
 			}
 		}
+	      if ((play == 1) && (note_len <= 0) && (note_index == 67)) {
+		      play = 0;
+		      TIM2_Cmd(DISABLE);
+	      }
+	      else if ((play == 1) && (note_len <= 0)) {
+	        note_index++;
+		      period = note_array[note_index];
+		      note_len = note_len_array[note_index];
+		      TIM2_SetAutoreload(period);
+          TIM2_SetCompare1(period/35);
+	      }
 		convertNumber(second,seconds);
 		convertNumber(minute,minutes);
 		convertNumber(hour, hours);

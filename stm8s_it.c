@@ -37,11 +37,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 extern volatile unsigned int tick_ms;
-extern volatile unsigned int play = 0;
-extern volatile unsigned int note_len = 0;
-extern volatile unsigned int period = 0;
+extern volatile unsigned int play;
+extern volatile int note_len;
+extern volatile unsigned int period;
+extern volatile unsigned int manual_clock_state;
+extern volatile int note_index;
 //Magda: funkcje do sterwoania uart z main.c
 extern void rx_put(char c);
 extern uint8_t tx_get(void);
@@ -525,7 +526,7 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
 	  if(play == 1){
-			if(0 != note_len) {
+			if(0 <= note_len) {
 				if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_4) == RESET) {
             GPIO_WriteHigh(GPIOC, GPIO_PIN_1);
         }
